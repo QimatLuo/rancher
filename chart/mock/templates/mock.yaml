@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-data
+  namespace: mock
+spec:
+  selector:
+    matchLabels:
+      app: app01
+  template:
+    metadata:
+      labels:
+        app: app01
+    spec:
+      containers:
+        - name: mock
+          image: denoland/deno
+          ports:
+            - containerPort: 8000
+          command:
+            - deno
+            - eval
+            - |
+                Deno.serve((req) => {
+                  console.log(req);
+                  const regx = RegExp(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z/);
+                  const [_, YYYY, MM, DD, HH, mm, SS, s] = regx.exec(now.toJSON()) as unknown as RegExpExecArray;
+
+                  return Response.json({
+                    sine: Math.sin(Date.now() * (1/60/60)),
+                    YYYY, MM, DD, HH, mm, SS, s
+                  });
+                });
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-data
+  namespace: mock
+spec:
+  selector:
+    app: app01
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

@@ -1,0 +1,12 @@
+[Unit]
+Description=Makes interfaces run in promiscuous mode at boot
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ifconfig wlan0 promisc
+TimeoutStartSec=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target
