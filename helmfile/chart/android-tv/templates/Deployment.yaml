@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: android-tv
+spec:
+  selector:
+    matchLabels:
+      app: android-tv
+  template:
+    metadata:
+      labels:
+        app: android-tv
+    spec:
+      hostNetwork: true
+      containers:
+        - name: adb
+          image: qimat/android-tv
+          ports:
+            - containerPort: 8000
+          command:
+            - deno
+            - serve
+            - -A
+            - serve.ts
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: android
+              mountPath: /root/.android
+            - name: w
+              mountPath: /w
+          workingDir: /w
+      volumes:
+        - name: android
+          configMap:
+            name: android
+        - name: w
+          configMap:
+            name: w

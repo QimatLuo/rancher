@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: w
+data:
+{{ (.Files.Glob "w/*").AsConfig | indent 2 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: android
+data:
+{{ (.Files.Glob ".android/*").AsConfig | indent 2 }}

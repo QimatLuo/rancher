@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: android-tv
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+spec:
+  tls:
+    - hosts:
+        - android-tv.home.ihanastudio.com
+      secretName: android-tv
+  rules:
+  - host: android-tv.home.ihanastudio.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: android-tv
+            port:
+              number: 8000
+  ingressClassName: nginx

@@ -1,0 +1,26 @@
+ui:
+  dockerRegistryUrl: https://docker.home.ihanastudio.com
+  ingress:
+    enabled: true
+    host: docker-ui.home.ihanastudio.com
+    tls:
+      - hosts:
+          - docker-ui.home.ihanastudio.com
+        secretName: docker-ui
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-production"
+registry:
+  enabled: true
+  ingress:
+    enabled: true
+    host: docker.home.ihanastudio.com
+    tls:
+      - hosts:
+          - docker.home.ihanastudio.com
+        secretName: registry
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-production"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-headers: accept,referer,sec-ch-ua,sec-ch-ua-mobile,sec-ch-ua-platform,user-agent
+

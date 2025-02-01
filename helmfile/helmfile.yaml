@@ -1,0 +1,83 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: metallb
+    url: https://metallb.github.io/metallb
+  - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
+  - name: pajikos
+    url: https://pajikos.github.io/home-assistant-helm-chart/
+  - name: rancher-latest
+    url: https://releases.rancher.com/server-charts/latest
+  - name: cloudflare
+    url: https://cloudflare.github.io/helm-charts
+  - name: joxit
+    url: https://helm.joxit.dev
+---
+releases:
+  # - name: metallb
+  #   chart: metallb/metallb
+  #   namespace: metallb-system
+  # - name: metallb-ip-range
+  #   chart: ./chart/metallb-ip-range
+  #   namespace: metallb-system
+  #   needs:
+  #     - metallb-system/metallb
+  #
+  # - name: ingress-nginx-internal
+  #   namespace: nginx-system
+  #   chart: ingress-nginx/ingress-nginx
+  #   values:
+  #     - ./ingress-nginx-internal/values.yaml
+  #
+  # - name: pihole
+  #   chart: mojo2600/pihole
+  #   namespace: pihole-system
+  #   values:
+  #     - ./pihole/values.yaml
+  #
+  # - name: externaldns-pihole
+  #   namespace: pihole-system
+  #   chart: bitnami/external-dns
+  #   values:
+  #     - ./externaldns/values.yaml
+  #
+  # - name: cert-manager-cluster-issuer
+  #   chart: ./chart/cert-manager-cluster-issuer
+  #   namespace: default
+  # - name: cert-manager-cloudflare-token
+  #   chart: ./chart/cert-manager-cloudflare-token
+  #   namespace: cert-manager
+  #   secrets:
+  #     - ./cert-manager-cloudflare-token/secrets.yaml
+  #   needs:
+  #     - default/cert-manager-cluster-issuer
+  #
+  # - name: rancher
+  #   chart: rancher-latest/rancher
+  #   namespace: cattle-system
+  #   values:
+  #     - ./rancher/values.yaml
+  #
+  # - name: cloudflare-tunnel
+  #   chart: ./chart/cloudflare-tunnel
+  #   namespace: cloudflare-tunnel
+  #
+  - name: home-assistant
+    chart: pajikos/home-assistant
+    namespace: ha-system
+    values:
+      - ./home-assistant/values.yaml
+  
+  - name: android-tv
+    chart: ./chart/android-tv
+    namespace: android-tv
+  # - name: docker
+  #   chart: joxit/docker-registry-ui
+  #   namespace: docker
+  #   values:
+  #     - ./docker/values.yaml

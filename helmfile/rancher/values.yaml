@@ -1,0 +1,13 @@
+hostname: rancher.home.ihanastudio.com
+ingress:
+  tls:
+    source: secret
+  extraAnnotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    external-dns.alpha.kubernetes.io/hostname: rancher.home.ihanastudio.com
+  ingressClassName: nginx
+replicas: 1
+letsEncrypt:
+  email: qiqi2k7@hotmail.com
+  ingress:
+    class: nginx

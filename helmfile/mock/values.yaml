@@ -1,0 +1,19 @@
+service:
+  type: LoadBalancer
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  storageClass: ""
+
+ingress:
+  enabled: true
+
+addons:
+  codeserver:
+    enabled: true
+    ingress:
+      enabled: true
+    service:
+      type: LoadBalancer
