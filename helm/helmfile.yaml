@@ -17,15 +17,19 @@ repositories:
     url: https://releases.rancher.com/server-charts/latest
 ---
 releases:
+  - name: home-default
+    chart: ../chart/default
+    namespace: default
+
   - name: longhorn
     namespace: longhorn-system
     chart: longhorn/longhorn
 
-  - name: metallb
-    chart: metallb/metallb
-    namespace: metallb-system
   - name: home-metallb-system
     chart: ../chart/metallb-system
+    namespace: metallb-system
+  - name: metallb
+    chart: metallb/metallb
     namespace: metallb-system
 
   - name: pihole
@@ -72,6 +76,3 @@ releases:
     values:
       - home-assistant.values.yaml
 
-  - name: home-default
-    chart: ../chart/default
-    namespace: default
