@@ -5,6 +5,3 @@ curl -sfL https://get.k3s.io | sh -s -
 ln -s /etc/rancher/k3s/k3s.yaml ~/.kube/config
 
 sudo cat /var/lib/rancher/k3s/server/node-token
-
-
-# kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.3/cert-manager.crds.yaml
