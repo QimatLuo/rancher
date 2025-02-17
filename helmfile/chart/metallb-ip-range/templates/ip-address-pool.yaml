@@ -5,7 +5,7 @@ metadata:
   name: pool
   namespace: metallb-system
   annotations:
-    meta.helm.sh/release-name: metallb-home
+    meta.helm.sh/release-name: metallb-ip-range
     meta.helm.sh/release-namespace: metallb-system
   labels:
     app.kubernetes.io/managed-by: Helm
@@ -19,11 +19,10 @@ metadata:
   name: pool
   namespace: metallb-system
   annotations:
-    meta.helm.sh/release-name: metallb-home
+    meta.helm.sh/release-name: metallb-ip-range
     meta.helm.sh/release-namespace: metallb-system
   labels:
     app.kubernetes.io/managed-by: Helm
 spec:
   ipAddressPools:
     - pool
-

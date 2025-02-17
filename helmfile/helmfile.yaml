@@ -22,8 +22,8 @@ releases:
   - name: metallb
     chart: metallb/metallb
     namespace: metallb-system
-  - name: metallb-home
-    chart: ./chart/metallb
+  - name: metallb-ip-range
+    chart: ./chart/metallb-ip-range
     namespace: metallb-system
     needs:
       - metallb-system/metallb
@@ -31,8 +31,6 @@ releases:
   - name: ingress-nginx-internal
     namespace: nginx-system
     chart: ingress-nginx/ingress-nginx
-    # values:
-    #   - ./nginx-internal.values.yaml
 
   - name: pihole
     chart: mojo2600/pihole
@@ -40,8 +38,19 @@ releases:
     values:
       - ./pihole/values.yaml
 
-  - name: externaldns-pihole
-    namespace: pihole-system
-    chart: bitnami/external-dns
-    values:
-      - ./externaldns/values.yaml
+  # - name: externaldns-pihole
+  #   namespace: pihole-system
+  #   chart: bitnami/external-dns
+  #   values:
+  #     - ./externaldns/values.yaml
+
+  - name: cert-manager-cluster-issuer
+    chart: ./chart/cert-manager-cluster-issuer
+    namespace: default
+  - name: cert-manager-cloudflare-token
+    chart: ./chart/cert-manager-cloudflare-token
+    namespace: cert-manager
+    secrets:
+      - ./cert-manager-cloudflare-token/secrets.yaml
+    needs:
+      - default/cert-manager-cluster-issuer
