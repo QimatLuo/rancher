@@ -1,0 +1,7 @@
+rest:
+  - scan_interval: 1
+    resource: http://10.43.147.245:8000
+    sensor:
+      - name: "Mock data"
+        unique_id: "0dc1aa05-9bda-492e-8365-990593627796"
+        value_template: '{{ value_json["s"] }}'
