@@ -19,18 +19,18 @@ repositories:
     url: https://cloudflare.github.io/helm-charts
 ---
 releases:
-  - name: metallb
-    chart: metallb/metallb
-    namespace: metallb-system
-  - name: metallb-ip-range
-    chart: ./chart/metallb-ip-range
-    namespace: metallb-system
-    needs:
-      - metallb-system/metallb
+  # - name: metallb
+  #   chart: metallb/metallb
+  #   namespace: metallb-system
+  # - name: metallb-ip-range
+  #   chart: ./chart/metallb-ip-range
+  #   namespace: metallb-system
+  #   needs:
+  #     - metallb-system/metallb
 
-  - name: ingress-nginx-internal
-    namespace: nginx-system
-    chart: ingress-nginx/ingress-nginx
+  # - name: ingress-nginx-internal
+  #   namespace: nginx-system
+  #   chart: ingress-nginx/ingress-nginx
 
   - name: pihole
     chart: mojo2600/pihole
@@ -54,3 +54,13 @@ releases:
       - ./cert-manager-cloudflare-token/secrets.yaml
     needs:
       - default/cert-manager-cluster-issuer
+
+  - name: rancher
+    chart: rancher-latest/rancher
+    namespace: cattle-system
+    values:
+      - ./rancher/values.yaml
+
+  - name: cloudflare-tunnel
+    chart: ./chart/cloudflare-tunnel
+    namespace: cloudflare-tunnel
