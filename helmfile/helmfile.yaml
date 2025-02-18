@@ -28,9 +28,11 @@ releases:
   #   needs:
   #     - metallb-system/metallb
 
-  # - name: ingress-nginx-internal
-  #   namespace: nginx-system
-  #   chart: ingress-nginx/ingress-nginx
+  - name: ingress-nginx-internal
+    namespace: nginx-system
+    chart: ingress-nginx/ingress-nginx
+    values:
+      - ./ingress-nginx-internal/values.yaml
 
   - name: pihole
     chart: mojo2600/pihole
