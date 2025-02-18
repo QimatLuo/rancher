@@ -64,3 +64,15 @@ releases:
   - name: cloudflare-tunnel
     chart: ./chart/cloudflare-tunnel
     namespace: cloudflare-tunnel
+
+  # - name: home-assistant
+  #   chart: pajikos/home-assistant
+  #   namespace: ha-system
+  #   values:
+  #     - home-assistant.values.yaml
+  # - name: home-mock
+  #   chart: ../chart/mock/
+  #   namespace: mock
+  #   values:
+  #     - home-assistant.values.yaml
+  #

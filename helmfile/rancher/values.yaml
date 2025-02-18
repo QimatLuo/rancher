@@ -1,4 +1,4 @@
-hostname: rancher.home.ihanastudio.com
+hostname: home.ihanastudio.com
 ingress:
   tls:
     source: secret
