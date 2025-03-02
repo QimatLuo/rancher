@@ -27,54 +27,51 @@ releases:
   #   namespace: metallb-system
   #   needs:
   #     - metallb-system/metallb
-
-  - name: ingress-nginx-internal
-    namespace: nginx-system
-    chart: ingress-nginx/ingress-nginx
-    values:
-      - ./ingress-nginx-internal/values.yaml
-
-  - name: pihole
-    chart: mojo2600/pihole
-    namespace: pihole-system
-    values:
-      - ./pihole/values.yaml
-
+  #
+  # - name: ingress-nginx-internal
+  #   namespace: nginx-system
+  #   chart: ingress-nginx/ingress-nginx
+  #   values:
+  #     - ./ingress-nginx-internal/values.yaml
+  #
+  # - name: pihole
+  #   chart: mojo2600/pihole
+  #   namespace: pihole-system
+  #   values:
+  #     - ./pihole/values.yaml
+  #
   # - name: externaldns-pihole
   #   namespace: pihole-system
   #   chart: bitnami/external-dns
   #   values:
   #     - ./externaldns/values.yaml
-
-  - name: cert-manager-cluster-issuer
-    chart: ./chart/cert-manager-cluster-issuer
-    namespace: default
-  - name: cert-manager-cloudflare-token
-    chart: ./chart/cert-manager-cloudflare-token
-    namespace: cert-manager
-    secrets:
-      - ./cert-manager-cloudflare-token/secrets.yaml
-    needs:
-      - default/cert-manager-cluster-issuer
-
-  - name: rancher
-    chart: rancher-latest/rancher
-    namespace: cattle-system
-    values:
-      - ./rancher/values.yaml
-
-  - name: cloudflare-tunnel
-    chart: ./chart/cloudflare-tunnel
-    namespace: cloudflare-tunnel
-
-  # - name: home-assistant
-  #   chart: pajikos/home-assistant
-  #   namespace: ha-system
-  #   values:
-  #     - home-assistant.values.yaml
-  # - name: home-mock
-  #   chart: ../chart/mock/
-  #   namespace: mock
-  #   values:
-  #     - home-assistant.values.yaml
   #
+  # - name: cert-manager-cluster-issuer
+  #   chart: ./chart/cert-manager-cluster-issuer
+  #   namespace: default
+  # - name: cert-manager-cloudflare-token
+  #   chart: ./chart/cert-manager-cloudflare-token
+  #   namespace: cert-manager
+  #   secrets:
+  #     - ./cert-manager-cloudflare-token/secrets.yaml
+  #   needs:
+  #     - default/cert-manager-cluster-issuer
+  #
+  # - name: rancher
+  #   chart: rancher-latest/rancher
+  #   namespace: cattle-system
+  #   values:
+  #     - ./rancher/values.yaml
+  #
+  # - name: cloudflare-tunnel
+  #   chart: ./chart/cloudflare-tunnel
+  #   namespace: cloudflare-tunnel
+  #
+  - name: home-assistant
+    chart: pajikos/home-assistant
+    namespace: ha-system
+    values:
+      - ./home-assistant/values.yaml
+  # - name: android-tv
+  #   chart: ./chart/android-tv
+  #   namespace: android-tv
