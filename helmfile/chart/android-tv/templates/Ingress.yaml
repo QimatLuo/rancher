@@ -10,14 +10,14 @@ spec:
         - android-tv.home.ihanastudio.com
       secretName: android-tv
   rules:
-  - host: android-tv.home.ihanastudio.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: android-tv
-            port:
-              number: 8000
+    - host: android-tv.home.ihanastudio.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: android-tv
+                port:
+                  number: 8000
   ingressClassName: nginx

@@ -27,13 +27,13 @@ spec:
           volumeMounts:
             - name: android
               mountPath: /root/.android
-            - name: w
-              mountPath: /w
-          workingDir: /w
+            - name: src
+              mountPath: /src
+          workingDir: /src
       volumes:
         - name: android
           configMap:
             name: android
-        - name: w
+        - name: src
           configMap:
-            name: w
+            name: src
