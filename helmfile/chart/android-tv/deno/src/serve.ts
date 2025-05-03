@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   combineLatestWith,
   defaultIfEmpty,
@@ -13,7 +12,10 @@ import {
   throwError,
 } from "rxjs";
 import main, { event } from "./process.ts";
-import { log } from "./log.ts";
+import { CmdOutput, Log } from "./di.ts";
+
+CmdOutput.next((x) => x.output());
+Log.next(log);
 
 main.subscribe({
   next: (x) => log(new Date().toJSON(), "next", x),
@@ -30,16 +32,16 @@ export default {
     const body = of(req.body)
       .pipe(
         filter(Boolean),
-        switchMap(() => req.json()),
-        map((x) => z.string().array().parse(x)),
+        switchMap(() => req.text()),
+        map((x) => x.split(" ")),
       );
 
     const output = of(req).pipe(
       filter((x) => x.method === "POST"),
-      filter(() => u.pathname === "/adb"),
+      filter(() => u.pathname === "/cmd"),
       combineLatestWith(body),
-      tap(log),
-      map(([, args]) => new Deno.Command("adb", { args })),
+      tap((x) => log(x)),
+      map(([, [x, ...args]]) => new Deno.Command(x, { args })),
       switchMap((x) => x.output()),
       switchMap((x) =>
         iif(
@@ -67,3 +69,7 @@ export default {
       });
   },
 };
+
+function log(...any: unknown[]) {
+  console.log(new Date().toJSON(), ...any);
+}
