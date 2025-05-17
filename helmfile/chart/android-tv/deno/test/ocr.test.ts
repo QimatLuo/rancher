@@ -15,6 +15,7 @@ const testScheduler = new TestScheduler((actual, expected) =>
 Deno.test("simple test", () => {
   testScheduler.run(({ expectObservable }) => {
     const testCase = from([
+      "bug_v2",
       "no_ignore",
       "can_ignore",
       "next",
