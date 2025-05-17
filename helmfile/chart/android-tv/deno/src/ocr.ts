@@ -1,23 +1,15 @@
-import { defer, filter, map, switchMap, tap } from "rxjs";
+import { defer, filter, map, pipe, switchMap, tap } from "rxjs";
 
 import { cmd } from "./command.ts";
 
 export function ocrProcess(input: string) {
   return cropUpperBlackSection(input).pipe(
     switchMap(isAllBlack),
-    tap((x) => {
-      if (x) return;
-      cmd(`rm ${input}`).subscribe();
-    }),
-    filter(Boolean),
+    removeIfNot(input),
     switchMap(() => cropRawToCircle(input)),
     switchMap((circle) =>
       willIgnore(circle).pipe(
-        tap((x) => {
-          if (x) return;
-          cmd(`rm ${input}`).subscribe();
-        }),
-        filter(Boolean),
+        removeIfNot(input),
         switchMap(() => cropCircleToNumber(circle)),
       )
     ),
@@ -28,6 +20,16 @@ export function ocrProcess(input: string) {
         map((x) => x ? 0 : n),
       )
     ),
+  );
+}
+
+function removeIfNot(input: string) {
+  return pipe(
+    tap((x) => {
+      if (x) return;
+      cmd(`rm ${input}`).subscribe();
+    }),
+    filter(Boolean),
   );
 }
 
