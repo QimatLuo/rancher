@@ -1,0 +1,13 @@
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: pool
+  namespace: metallb-system
+  annotations:
+    meta.helm.sh/release-name: metallb-ip-range
+    meta.helm.sh/release-namespace: metallb-system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ipAddressPools:
+    - pool

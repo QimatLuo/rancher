@@ -2,11 +2,10 @@ import { assertEquals } from "@std/assert";
 import { TestScheduler } from "rxjs/testing";
 import { concatMap, from, map, of } from "rxjs";
 
-import { CmdOutput, Log } from "../src/di.ts";
-import { ocr } from "../src/ocr.ts";
+import { CmdOutput } from "../src/di.ts";
+import { ocrProcess } from "../src/ocr.ts";
 
 CmdOutput.next((x) => of(x.outputSync()));
-Log.next(() => {});
 
 const testScheduler = new TestScheduler((actual, expected) =>
   assertEquals(actual, expected)
@@ -15,9 +14,11 @@ const testScheduler = new TestScheduler((actual, expected) =>
 Deno.test("simple test", () => {
   testScheduler.run(({ expectObservable }) => {
     const testCase = from([
+      "bug_v2",
       "no_ignore",
       "can_ignore",
       "next",
+      "next2",
       "1",
       "4",
       "5",
@@ -33,10 +34,10 @@ Deno.test("simple test", () => {
       "23",
     ]).pipe(
       map((x) => `${Deno.cwd()}/test/img/${x}.png`),
-      concatMap(ocr),
+      concatMap(ocrProcess),
     );
     expectObservable(testCase).toBe(
-      "(014568adegijln|)",
+      "(00014568adegijln|)",
       {
         ...Object.fromEntries(
           Array(10).fill(0).map((x, i) => x + i).map((x) => [`${x}`, x]),
