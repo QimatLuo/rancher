@@ -1,8 +1,10 @@
 import {
   buffer,
+  catchError,
   debounceTime,
   filter,
   merge,
+  of,
   repeat,
   share,
   Subject,
@@ -39,6 +41,7 @@ export default merge(
         tap(([, log]) => log("stop")),
       ),
     ),
+    catchError((e) => of(e)),
     repeat(),
   ),
 );
