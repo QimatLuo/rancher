@@ -2,7 +2,7 @@ import { defer, filter, map, switchMap, tap } from "rxjs";
 
 import { cmd } from "./command.ts";
 
-export function ocr(input: string) {
+export function ocrProcess(input: string) {
   return cropRawToCircle(input).pipe(
     switchMap((circle) =>
       willIgnore(circle).pipe(

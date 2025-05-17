@@ -3,7 +3,7 @@ import { TestScheduler } from "rxjs/testing";
 import { concatMap, from, map, of } from "rxjs";
 
 import { CmdOutput, Log } from "../src/di.ts";
-import { ocr } from "../src/ocr.ts";
+import { ocrProcess } from "../src/ocr.ts";
 
 CmdOutput.next((x) => of(x.outputSync()));
 Log.next(() => {});
@@ -33,7 +33,7 @@ Deno.test("simple test", () => {
       "23",
     ]).pipe(
       map((x) => `${Deno.cwd()}/test/img/${x}.png`),
-      concatMap(ocr),
+      concatMap(ocrProcess),
     );
     expectObservable(testCase).toBe(
       "(014568adegijln|)",

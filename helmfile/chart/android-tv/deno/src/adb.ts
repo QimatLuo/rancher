@@ -11,7 +11,7 @@ import {
   timer,
 } from "rxjs";
 
-import { ocr } from "./ocr.ts";
+import { ocrProcess } from "./ocr.ts";
 import { cmd } from "./command.ts";
 
 export const connect = cmd("adb connect 192.168.1.112");
@@ -67,7 +67,7 @@ function screencap(): Observable<{
 export default defer(() => screencap()).pipe(
   switchMap(
     ({ filename, duration }) =>
-      ocr(filename).pipe(
+      ocrProcess(filename).pipe(
         switchMap((x) =>
           iif(
             () => x > 5,
