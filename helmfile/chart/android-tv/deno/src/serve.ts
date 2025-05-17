@@ -27,7 +27,7 @@ export default {
   fetch: (req: Request) => {
     log(req.method, req.url);
     const u = new URL(req.url);
-    event.next(u.pathname);
+    event.next(u.pathname.slice(1));
 
     const body = of(req.body).pipe(
       filter(Boolean),

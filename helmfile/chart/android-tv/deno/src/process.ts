@@ -3,7 +3,6 @@ import {
   debounceTime,
   filter,
   merge,
-  partition,
   repeat,
   share,
   Subject,
@@ -17,20 +16,17 @@ import main, { connect } from "./adb.ts";
 
 export const event = new Subject<string>();
 
-const trigger = event.pipe(
-  filter((x) => x !== "/idle"),
-  buffer(event.pipe(debounceTime(50))),
-  share(),
-);
+const trigger = event.pipe(buffer(event.pipe(debounceTime(50))), share());
 
-const [start, stop] = partition(
-  trigger,
-  (xs) => xs.includes("/playing") && !xs.includes("/off"),
+const start = trigger.pipe(filter((xs) => xs.includes("playing")));
+const stop = merge(
+  trigger.pipe(filter((xs) => xs.includes("off"))),
+  trigger.pipe(filter((xs) => xs.includes("paused"))),
 );
 
 export default merge(
   event.pipe(
-    filter((x) => x === "/on"),
+    filter((x) => x === "on"),
     switchMap(() => connect),
   ),
   start.pipe(
