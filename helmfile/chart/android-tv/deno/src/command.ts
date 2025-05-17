@@ -11,14 +11,15 @@ import { CmdOutput, Log } from "./di.ts";
 
 export function cmd(input: string) {
   return of(input.split(" ")).pipe(
-    withLatestFrom(Log, CmdOutput),
-    tap(([, log]) => {
+    tap(() => {
+      if (input.includes("1920x685+0+0")) return;
       if (input.includes("76x76+1767+934")) return;
       if (input.endsWith("info:")) return;
       if (input.startsWith("rm")) return;
-      log(input);
+      Log.next(input);
     }),
-    switchMap(([[command, ...args], log, cmdOutput]) =>
+    withLatestFrom(CmdOutput),
+    switchMap(([[command, ...args], cmdOutput]) =>
       of(new Deno.Command(command, { args })).pipe(
         switchMap(cmdOutput),
         switchMap((x) =>
@@ -31,7 +32,7 @@ export function cmd(input: string) {
         tap((x) => {
           if (x === "") return;
           if (input.endsWith("info:")) return;
-          log(x);
+          Log.next(x);
         }),
       )
     ),

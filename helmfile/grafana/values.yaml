@@ -1,0 +1,11 @@
+ingress:
+  enabled: true
+  hosts:
+    - grafana.home.ihanastudio.com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    external-dns.alpha.kubernetes.io/hostname: grafana.home.ihanastudio.com
+  ingressClassName: nginx
+persistence:
+  type: pvc
+  enabled: true
