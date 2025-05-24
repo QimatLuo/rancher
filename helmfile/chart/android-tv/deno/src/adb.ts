@@ -2,12 +2,15 @@ import {
   defer,
   delay,
   EMPTY,
+  filter,
   iif,
   map,
   Observable,
   of,
   pipe,
+  retry,
   switchMap,
+  throwIfEmpty,
   timer,
 } from "rxjs";
 
@@ -49,18 +52,15 @@ function screencap(): Observable<{
     child.stdin.close();
     return child.status;
   }).pipe(
-    switchMap((x) =>
-      iif(
-        () => x.success,
-        defer(() =>
-          of({
-            filename: `/tmp/${t}.png`,
-            duration: Date.now() - t,
-          })
-        ),
-        connect.pipe(switchMap(() => screencap())),
-      )
-    ),
+    filter((x) => x.success),
+    map(() => ({
+      filename: `/tmp/${t}.png`,
+      duration: Date.now() - t,
+    })),
+    throwIfEmpty(() => new Error('screencap failed')),
+    retry({
+      delay: () => connect.pipe(delay(1000)),
+    }),
   );
 }
 
