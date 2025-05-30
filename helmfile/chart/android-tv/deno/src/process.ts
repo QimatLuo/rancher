@@ -2,7 +2,9 @@ import {
   buffer,
   catchError,
   debounceTime,
+  EMPTY,
   filter,
+  map,
   merge,
   of,
   repeat,
@@ -34,14 +36,23 @@ export default merge(
   start.pipe(
     withLatestFrom(Log),
     tap(([, log]) => log("start")),
-    switchMap(() => main.pipe(repeat())),
+    switchMap(() =>
+      main.pipe(
+        catchError((e) =>
+          Log.pipe(
+            tap((log) => log("error", e)),
+            switchMap(() => EMPTY),
+          )
+        ),
+        repeat(),
+      )
+    ),
     takeUntil(
       stop.pipe(
         withLatestFrom(Log),
         tap(([, log]) => log("stop")),
       ),
     ),
-    catchError((e) => of(e)),
     repeat(),
   ),
 );
