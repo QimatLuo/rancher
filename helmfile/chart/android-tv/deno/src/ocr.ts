@@ -1,16 +1,15 @@
-import { defer, filter, map, switchMap, tap } from "rxjs";
+import { defer, filter, map, pipe, switchMap, tap } from "rxjs";
 
 import { cmd } from "./command.ts";
 
-export function ocr(input: string) {
-  return cropRawToCircle(input).pipe(
+export function ocrProcess(input: string) {
+  return cropUpperBlackSection(input).pipe(
+    switchMap(isAllBlack),
+    removeIfNot(input),
+    switchMap(() => cropRawToCircle(input)),
     switchMap((circle) =>
       willIgnore(circle).pipe(
-        tap((x) => {
-          if (x) return;
-          cmd(`rm ${input}`).subscribe();
-        }),
-        filter(Boolean),
+        removeIfNot(input),
         switchMap(() => cropCircleToNumber(circle)),
       )
     ),
@@ -21,6 +20,16 @@ export function ocr(input: string) {
         map((x) => x ? 0 : n),
       )
     ),
+  );
+}
+
+function removeIfNot(input: string) {
+  return pipe(
+    tap((x) => {
+      if (x) return;
+      cmd(`rm ${input}`).subscribe();
+    }),
+    filter(Boolean),
   );
 }
 
@@ -39,6 +48,23 @@ function cropRawToCircle(input: string) {
     `convert ${input} -crop 76x76+1767+934 -fuzz 10% -fill #fff +opaque #000 ${output}`,
   ).pipe(
     map(() => output),
+  );
+}
+
+function cropUpperBlackSection(input: string) {
+  const output = "/tmp/upper.jpg";
+  return cmd(
+    `convert ${input} -crop 1920x685+0+0 ${output}`,
+  ).pipe(
+    map(() => output),
+  );
+}
+
+function isAllBlack(input: string) {
+  return cmd(
+    `convert ${input} -format "%[fx:mean]" info:`,
+  ).pipe(
+    map((x) => x === '"0"'),
   );
 }
 

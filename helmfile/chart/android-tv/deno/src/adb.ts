@@ -2,16 +2,19 @@ import {
   defer,
   delay,
   EMPTY,
+  filter,
   iif,
   map,
   Observable,
   of,
   pipe,
+  retry,
   switchMap,
+  throwIfEmpty,
   timer,
 } from "rxjs";
 
-import { ocr } from "./ocr.ts";
+import { ocrProcess } from "./ocr.ts";
 import { cmd } from "./command.ts";
 
 export const connect = cmd("adb connect 192.168.1.112");
@@ -49,25 +52,22 @@ function screencap(): Observable<{
     child.stdin.close();
     return child.status;
   }).pipe(
-    switchMap((x) =>
-      iif(
-        () => x.success,
-        defer(() =>
-          of({
-            filename: `/tmp/${t}.png`,
-            duration: Date.now() - t,
-          })
-        ),
-        connect.pipe(switchMap(() => screencap())),
-      )
-    ),
+    filter((x) => x.success),
+    map(() => ({
+      filename: `/tmp/${t}.png`,
+      duration: Date.now() - t,
+    })),
+    throwIfEmpty(() => new Error('screencap failed')),
+    retry({
+      delay: () => connect.pipe(delay(1000)),
+    }),
   );
 }
 
 export default defer(() => screencap()).pipe(
   switchMap(
     ({ filename, duration }) =>
-      ocr(filename).pipe(
+      ocrProcess(filename).pipe(
         switchMap((x) =>
           iif(
             () => x > 5,

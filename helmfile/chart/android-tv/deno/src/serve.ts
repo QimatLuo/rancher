@@ -17,22 +17,18 @@ import { CmdOutput, Log } from "./di.ts";
 CmdOutput.next((x) => x.output());
 Log.next(log);
 
-main.subscribe({
-  next: (x) => log(new Date().toJSON(), "next", x),
-  error: (x) => log("error", x),
-  complete: () => log("complete"),
-});
+main.subscribe((x) => log("next", x));
 
 export default {
   fetch: (req: Request) => {
     log(req.method, req.url);
     const u = new URL(req.url);
-    event.next(u.pathname);
+    event.next(u.pathname.slice(1));
 
     const body = of(req.body).pipe(
       filter(Boolean),
       switchMap(() => req.text()),
-      map((x) => x.split(" "))
+      map((x) => x.split(" ")),
     );
 
     const output = of(req).pipe(
@@ -46,10 +42,10 @@ export default {
         iif(
           () => x.code === 0,
           defer(() => of(new TextDecoder().decode(x.stdout))),
-          throwError(() => new TextDecoder().decode(x.stderr))
+          throwError(() => new TextDecoder().decode(x.stderr)),
         )
       ),
-      map((x) => Response.json(x))
+      map((x) => Response.json(x)),
     );
 
     return lastValueFrom(
@@ -62,10 +58,10 @@ export default {
             },
             {
               status: 404,
-            }
-          )
-        )
-      )
+            },
+          ),
+        ),
+      ),
     ).catch((x) => {
       console.error(x);
       return Response.json(x, {

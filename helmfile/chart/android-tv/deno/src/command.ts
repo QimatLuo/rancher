@@ -13,6 +13,7 @@ export function cmd(input: string) {
   return of(input.split(" ")).pipe(
     withLatestFrom(Log, CmdOutput),
     tap(([, log]) => {
+      if (input.includes("1920x685+0+0")) return;
       if (input.includes("76x76+1767+934")) return;
       if (input.endsWith("info:")) return;
       if (input.startsWith("rm")) return;
