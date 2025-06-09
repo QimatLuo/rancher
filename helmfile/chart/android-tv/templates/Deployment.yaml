@@ -15,6 +15,7 @@ spec:
       containers:
         - name: adb
           image: qimat/android-tv
+          imagePullPolicy: Never
           ports:
             - containerPort: 8000
           command:

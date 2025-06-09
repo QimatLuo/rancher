@@ -1,3 +1,13 @@
 controller:
-  nginxDebug: true
+  admissionWebhooks:
+    patch:
+      image:
+        pullPolicy: Never
+  image:
+    pullPolicy: Never
   logLevel: 5
+  nginxDebug: true
+
+defaultBackend:
+  image:
+    pullPolicy: Never
