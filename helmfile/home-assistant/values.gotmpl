@@ -1,0 +1,23 @@
+dnsPolicy: ClusterFirstWithHostNet
+hostNetwork: true
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+  hosts:
+    - host: ha.home.ihanastudio.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+service:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ha.home.ihanastudio.com
+
+persistence:
+  enabled: true
+  existingClaim: home-assistant-data
+configuration:
+  enabled: true
+  forceInit: true
+  templateConfig: {{ readFile "configuration.yaml" | toYaml | indent 4 }}

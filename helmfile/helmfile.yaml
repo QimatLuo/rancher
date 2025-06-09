@@ -71,7 +71,7 @@ releases:
     chart: pajikos/home-assistant
     namespace: ha-system
     values:
-      - ./home-assistant/values.yaml
+      - ./home-assistant/values.gotmpl
   
   - name: android-tv
     chart: ./chart/android-tv
