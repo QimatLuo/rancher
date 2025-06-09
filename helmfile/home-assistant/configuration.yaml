@@ -1,0 +1,19 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+shell_command:
+  "off": "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/off"
+  "on": "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/on"
+  buffering: "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/buffering"
+  idle: "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/idle"
+  onoff: "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/onoff"
+  paused: "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/paused"
+  playing: "curl -k -L http://android-tv.android-tv.svc.cluster.local:8000/playing"
