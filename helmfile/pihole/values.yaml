@@ -13,7 +13,7 @@ monitoring:
     image:
       pullPolicy: IfNotPresent
 persistentVolumeClaim:
-  enabled: false
+  enabled: true
 serviceDns:
   annotations:
     metallb.universe.tf/allow-shared-ip: pihole-svc

@@ -22,6 +22,8 @@ releases:
   # - name: longhorn
   #   namespace: longhorn-system
   #   chart: longhorn/longhorn
+  #   values:
+  #     - ./longhorn/values.yaml
 
   # - name: harbor
   #   chart: oci://registry-1.docker.io/bitnamicharts/harbor
