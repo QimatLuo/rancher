@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ping
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: adb
+              image: qimat/android-tv:20250720
+              imagePullPolicy: Always
+              command:
+                - bash
+                - CronJob.sh
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - name: android
+                  mountPath: /root/.android
+                - name: src
+                  mountPath: /src
+              workingDir: /src
+          volumes:
+            - name: android
+              configMap:
+                name: android
+            - name: src
+              configMap:
+                name: src
+

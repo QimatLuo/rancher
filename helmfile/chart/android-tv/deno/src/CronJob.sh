@@ -1,0 +1,1 @@
+timeout 3 adb connect 192.168.1.112 && curl http://android-tv.android-tv.svc.cluster.local:8000/on || curl http://android-tv.android-tv.svc.cluster.local:8000/off

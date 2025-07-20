@@ -14,7 +14,7 @@ spec:
       hostNetwork: true
       containers:
         - name: adb
-          image: qimat/android-tv
+          image: qimat/android-tv:20250720
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
