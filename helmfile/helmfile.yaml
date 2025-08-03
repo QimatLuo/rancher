@@ -55,12 +55,6 @@ releases:
     chart: ./chart/android-tv
     namespace: android-tv
 
-  # - name: home-assistant
-  #   chart: pajikos/home-assistant
-  #   namespace: home-assistant-system
-  #   values:
-  #     - ./home-assistant/values.gotmpl
-
   # - name: rancher
   #   chart: rancher-latest/rancher
   #   namespace: cattle-system
