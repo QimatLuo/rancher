@@ -14,14 +14,15 @@ spec:
       hostNetwork: true
       containers:
         - name: adb
-          image: qimat/android-tv
+          image: qimat/android-tv:20250720
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           command:
             - deno
-            - serve
+            - run
             - -A
-            - serve.ts
+            - main.ts
           securityContext:
             privileged: true
           volumeMounts:
@@ -30,6 +31,12 @@ spec:
             - name: src
               mountPath: /src
           workingDir: /src
+          livenessProbe:
+            exec:
+              command:
+                - adb
+                - connect
+                - 192.168.1.112
       volumes:
         - name: android
           configMap:
