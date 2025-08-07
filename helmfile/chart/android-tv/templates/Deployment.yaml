@@ -23,6 +23,11 @@ spec:
             - run
             - -A
             - main.ts
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           securityContext:
             privileged: true
           volumeMounts:
