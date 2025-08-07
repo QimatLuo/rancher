@@ -1,5 +1,6 @@
 import {
   defer,
+  delay,
   filter,
   iif,
   Observable,
@@ -18,6 +19,8 @@ function log(...any: unknown[]) {
   console.log(new Date().toJSON(), ...any);
 }
 
+const shiftTime = +(Deno.env.get("POD_NAME")?.slice(-1) || 0) * 1000;
+
 const main: Observable<string> = defer(() => screencap()).pipe(
   switchMap(({ filename, duration }) =>
     ocrProcess(filename).pipe(
@@ -35,7 +38,8 @@ logcat
     filter((x) => x.includes("youtube")),
     filter((x) => x.includes("onPlaybackStateChanged")),
     filter((x) => x.includes("actions=51")),
-    switchMap(() => main),
+    delay(shiftTime),
+    tap(() => log("ad")),
   )
   .subscribe({
     complete: () => log("complete"),
