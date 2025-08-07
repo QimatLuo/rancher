@@ -5,6 +5,7 @@ import {
   iif,
   Observable,
   switchMap,
+  takeUntil,
   tap,
   timeout,
   timer,
@@ -32,6 +33,11 @@ const main: Observable<string> = defer(() => screencap()).pipe(
   ),
 );
 
+const clicked = logcat.pipe(
+  filter((x) => x.includes("keyCode=KEYCODE_DPAD_CENTER")),
+  filter((x) => x.includes("action=ACTION_UP")),
+);
+
 logcat
   .pipe(
     timeout(1000 * 60 * 60),
@@ -40,6 +46,7 @@ logcat
     filter((x) => x.includes("actions=51")),
     delay(shiftTime),
     tap(() => log("ad")),
+    switchMap(() => main.pipe(takeUntil(clicked))),
   )
   .subscribe({
     complete: () => log("complete"),
