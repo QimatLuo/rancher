@@ -1,6 +1,7 @@
 import {
   defer,
   delay,
+  exhaustMap,
   filter,
   iif,
   Observable,
@@ -44,10 +45,10 @@ logcat
     filter((x) => x.includes("actions=51")),
     delay(shiftTime),
     tap((x) => Log.next(x)),
-    switchMap(() => main.pipe(takeUntil(clicked))),
+    exhaustMap(() => main.pipe(takeUntil(clicked))),
   )
   .subscribe({
     complete: () => Log.next("complete"),
-    error: (x) => Log.next("error", x),
-    next: (x) => Log.next("next", x),
+    error: (x) => Log.next(["error", x]),
+    next: (x) => Log.next(["next", x]),
   });
