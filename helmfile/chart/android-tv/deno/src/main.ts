@@ -15,17 +15,14 @@ import { ocrProcess } from "./ocr.ts";
 import { CmdOutput, Log } from "./di.ts";
 
 CmdOutput.next((x) => x.output());
-Log.next(log);
-function log(...any: unknown[]) {
-  console.log(new Date().toJSON(), ...any);
-}
+Log.subscribe(console.log);
 
 const shiftTime = +(Deno.env.get("POD_NAME")?.slice(-1) || 0) * 1000;
 
 const main: Observable<string> = defer(() => screencap()).pipe(
   switchMap(({ filename, duration }) =>
     ocrProcess(filename).pipe(
-      tap((x) => log(x)),
+      tap((x) => Log.next(x)),
       switchMap((x) =>
         iif(() => x > 5, main, timer(x * 1000 - duration).pipe(click()))
       ),
@@ -36,6 +33,7 @@ const main: Observable<string> = defer(() => screencap()).pipe(
 const clicked = logcat.pipe(
   filter((x) => x.includes("keyCode=KEYCODE_DPAD_CENTER")),
   filter((x) => x.includes("action=ACTION_UP")),
+  tap((x) => Log.next(x)),
 );
 
 logcat
@@ -45,11 +43,11 @@ logcat
     filter((x) => x.includes("onPlaybackStateChanged")),
     filter((x) => x.includes("actions=51")),
     delay(shiftTime),
-    tap(() => log("ad")),
+    tap((x) => Log.next(x)),
     switchMap(() => main.pipe(takeUntil(clicked))),
   )
   .subscribe({
-    complete: () => log("complete"),
-    error: (x) => log("error", x),
-    next: (x) => log("next", x),
+    complete: () => Log.next("complete"),
+    error: (x) => Log.next("error", x),
+    next: (x) => Log.next("next", x),
   });
