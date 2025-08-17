@@ -1,6 +1,7 @@
 import { defer, filter, map, pipe, switchMap, tap } from "rxjs";
 
 import { cmd } from "./command.ts";
+import { Log } from "./di.ts";
 
 export function ocrProcess(input: string) {
   return cropUpperBlackSection(input).pipe(
@@ -27,6 +28,7 @@ function removeIfNot(input: string) {
   return pipe(
     tap((x) => {
       if (x) return;
+      Log.next("removeIfNot");
       cmd(`rm ${input}`).subscribe();
     }),
     filter(Boolean),

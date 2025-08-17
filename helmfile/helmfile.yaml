@@ -1,55 +1,49 @@
 repositories:
-  # - name: longhorn
-  #   url: https://charts.longhorn.io
-  # - name: metallb
-  #   url: https://metallb.github.io/metallb
-  # - name: mojo2600
-  #   url: https://mojo2600.github.io/pihole-kubernetes/
-  # - name: bitnami
-  #   url: https://charts.bitnami.com/bitnami
-  # - name: ingress-nginx
-  #   url: https://kubernetes.github.io/ingress-nginx
-  # - name: pajikos
-  #   url: https://pajikos.github.io/home-assistant-helm-chart/
+  - name: longhorn
+    url: https://charts.longhorn.io
+  - name: metallb
+    url: https://metallb.github.io/metallb
+  - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
   # - name: rancher-latest
   #   url: https://releases.rancher.com/server-charts/latest
-  # - name: jetstack
-  #   url: https://charts.jetstack.io
   # - name: cloudflare
   #   url: https://cloudflare.github.io/helm-charts
 ---
 releases:
-  # - name: longhorn
-  #   namespace: longhorn-system
-  #   chart: longhorn/longhorn
-  #   values:
-  #     - ./longhorn/values.yaml
+  - name: longhorn
+    namespace: longhorn-system
+    chart: longhorn/longhorn
 
   # - name: harbor
   #   chart: oci://registry-1.docker.io/bitnamicharts/harbor
   #   version: 26.7.3
 
-  # - name: ingress-nginx-internal
-  #   namespace: nginx-system
-  #   chart: ingress-nginx/ingress-nginx
-  #   values:
-  #     - ./ingress-nginx-internal/values.yaml
-  
-  # - name: metallb
-  #   chart: metallb/metallb
-  #   namespace: metallb-system
+  - name: ingress-nginx-internal
+    namespace: nginx-system
+    chart: ingress-nginx/ingress-nginx
+    values:
+      - ./ingress-nginx-internal/values.yaml
 
-  # - name: pihole
-  #   chart: mojo2600/pihole
-  #   namespace: pihole-system
-  #   values:
-  #     - ./pihole/values.yaml
-  
-  # - name: externaldns-pihole
-  #   namespace: pihole-system
-  #   chart: bitnami/external-dns
-  #   values:
-  #     - ./externaldns/values.yaml
+  - name: metallb
+    chart: metallb/metallb
+    namespace: metallb-system
+
+  - name: pihole
+    chart: mojo2600/pihole
+    namespace: pihole-system
+    values:
+      - ./pihole/values.yaml
+
+  - name: externaldns-pihole
+    namespace: pihole-system
+    chart: bitnami/external-dns
+    values:
+      - ./externaldns/values.yaml
 
   - name: android-tv
     chart: ./chart/android-tv
@@ -60,7 +54,7 @@ releases:
   #   namespace: cattle-system
   #   values:
   #     - ./rancher/values.yaml
-  
+
   # - name: cert-manager-cluster-issuer
   #   chart: ./chart/cert-manager-cluster-issuer
   #   namespace: default

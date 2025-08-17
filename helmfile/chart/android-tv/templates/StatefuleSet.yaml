@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: android-tv
 spec:
@@ -23,6 +23,11 @@ spec:
             - run
             - -A
             - main.ts
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           securityContext:
             privileged: true
           volumeMounts:
@@ -31,6 +36,12 @@ spec:
             - name: src
               mountPath: /src
           workingDir: /src
+          startupProbe:
+            exec:
+              command:
+                - adb
+                - connect
+                - 192.168.1.112
           livenessProbe:
             exec:
               command:
