@@ -1,3 +1,0 @@
-apiVersion: v3
-name: cert-manager-cloudflare-token
-version: 0.0.1

@@ -22,3 +22,8 @@
 *.tmproj
 .vscode/
 *.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+__pycache__/
