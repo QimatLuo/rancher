@@ -1,1 +1,17 @@
+image:
+  registry: 192.168.1.117:30500
+  repository: android-tv
+  tag: latest
+  pullPolicy: IfNotPresent
+
+internalRegistry:
+  enabled: true
+  nodePort: 30500
+
+persistence:
+  enabled: true
+  claimName: android-tv-sample-click
+  mountPath: /sample_click
+  storageClassName: local-path
+  size: 1Gi
 

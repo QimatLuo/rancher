@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: android-tv-image-build
+  namespace: android-tv
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:latest
+          args:
+            - --context=dir:///workspace
+            - --dockerfile=/workspace/Dockerfile
+            - --destination=192.168.1.117:30500/android-tv:latest
+            - --insecure
+            - --skip-tls-verify
+            - --cache=false
+          volumeMounts:
+            - name: source
+              mountPath: /workspace
+              readOnly: true
+      volumes:
+        - name: source
+          configMap:
+            name: android-tv-build-src
+            defaultMode: 0755
+            items:
+              - key: Dockerfile
+                path: Dockerfile
+              - key: connect.sh
+                path: connect.sh
+              - key: match_click.py
+                path: match_click.py
+              - key: sample_click_tv_ignore.png
+                path: sample_click/tv/ignore.png
+              - key: sample_click_tv_next.png
+                path: sample_click/tv/next.png
+              - key: sample_click_heartopia_cook1.png
+                path: sample_click/heartopia/cook1.png
+              - key: sample_click_heartopia_cook2.png
+                path: sample_click/heartopia/cook2.png
+              - key: sample_click_heartopia_cook3.png
+                path: sample_click/heartopia/cook3.png
+              - key: sample_click_heartopia_cook4.png
+                path: sample_click/heartopia/cook4.png

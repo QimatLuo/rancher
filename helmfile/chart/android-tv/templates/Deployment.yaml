@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: android-tv
+spec:
+  selector:
+    matchLabels:
+      app: android-tv
+  template:
+    metadata:
+      labels:
+        app: android-tv
+    spec:
+      hostNetwork: true
+      containers:
+        - name: adb
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sleep
+            - 1d
+          env:
+            - name: MATCH_ACTION
+              value: tap
+              # value: dpad_center
+            - name: MATCH_AFTER_TAP_SLEEP
+              value: "1"
+              # value: "5.0"
+            - name: MATCH_TEMPLATE_DIR
+              value: /sample_click/heartopia
+              # value: /sample_click/tv
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: android
+              mountPath: /root/.android
+            - name: src
+              mountPath: /src
+            - name: sample-click
+              mountPath: {{ .Values.persistence.mountPath }}
+          workingDir: /src
+          # startupProbe:
+          #   exec:
+          #     command:
+          #       - sh
+          #       - connect.sh
+          #   timeoutSeconds: 12
+          # livenessProbe:
+          #   exec:
+          #     command:
+          #       - sh
+          #       - connect.sh
+          #   timeoutSeconds: 12
+      volumes:
+        - name: android
+          configMap:
+            name: android
+        - name: src
+          configMap:
+            name: src
+        - name: sample-click
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.claimName }}

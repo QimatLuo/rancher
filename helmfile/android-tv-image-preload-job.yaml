@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: android-tv-image-preload
+  namespace: android-tv
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      hostNetwork: true
+      containers:
+        - name: preload
+          image: rancher/k3s:v1.34.6-k3s1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              ctr --address /run/k3s/containerd/containerd.sock -n k8s.io images pull --plain-http 192.168.1.117:30500/android-tv:latest
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: containerd-sock
+              mountPath: /run/k3s/containerd/containerd.sock
+      volumes:
+        - name: containerd-sock
+          hostPath:
+            path: /run/k3s/containerd/containerd.sock
+            type: Socket

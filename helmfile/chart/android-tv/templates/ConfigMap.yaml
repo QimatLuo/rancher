@@ -11,5 +11,4 @@ kind: ConfigMap
 metadata:
   name: src
 data:
-{{ (.Files.Glob "deno/src/*").AsConfig | indent 2 }}
-{{ (.Files.Glob "deno/*").AsConfig | indent 2 }}
+{{ (.Files.Glob "src/*").AsConfig | indent 2 }}
