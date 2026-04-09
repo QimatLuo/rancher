@@ -11,5 +11,9 @@ kind: ConfigMap
 metadata:
   name: src
 data:
-{{ (.Files.Glob "deno/src/*").AsConfig | indent 2 }}
-{{ (.Files.Glob "deno/*").AsConfig | indent 2 }}
+{{- range $path, $_ := .Files.Glob "src/**" }}
+{{- if and (not (hasSuffix "/" $path)) (regexMatch "\\.(py|sh|html)$" $path) }}
+  {{ $path | trimPrefix "src/" | replace "/" "_" }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}
