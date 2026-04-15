@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: android-rpi
+spec:
+  selector:
+    matchLabels:
+      app: android-rpi
+  template:
+    metadata:
+      labels:
+        app: android-rpi
+    spec:
+      hostNetwork: false
+      containers:
+        - name: adb
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - bash connect.sh && exec python3 -u match_click.py
+          env:
+            - name: ADB_SERVER_IP
+              value: "192.168.1.113"
+            - name: ADB_SERVER_PORT
+              value: "5556"
+            - name: MATCH_ACTION
+              value: tap
+            - name: MATCH_AFTER_TAP_SLEEP
+              value: "1"
+            - name: MATCH_THRESHOLD
+              value: "25"
+            - name: MATCH_TEMPLATE_DIR
+              value: /sample_click/heartopia
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: android
+              mountPath: /root/.android
+            - name: src
+              mountPath: /src
+            - name: sample-click
+              mountPath: {{ .Values.persistence.mountPath }}
+          workingDir: /src
+      volumes:
+        - name: android
+          configMap:
+            name: android
+        - name: src
+          configMap:
+            name: src
+        - name: sample-click
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.claimName }}
