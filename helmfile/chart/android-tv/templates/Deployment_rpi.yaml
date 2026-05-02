@@ -19,7 +19,7 @@ spec:
           command:
             - sh
             - -c
-            - bash connect.sh && exec python3 -u feature_snow.py
+            - bash connect.sh && exec python3 -u feature_axe.py
           env:
             - name: ADB_SERVER_IP
               value: "192.168.1.198"
