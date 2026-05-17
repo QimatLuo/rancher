@@ -1,7 +1,69 @@
 ---
+repositories:
+  - name: jetstack
+    url: https://charts.jetstack.io
+
 releases:
+  - name: cert-manager
+    chart: jetstack/cert-manager
+    version: v1.16.2
+    namespace: cert-manager
+    createNamespace: true
+    values:
+      - installCRDs: true
+  - name: cluster-issuer
+    chart: ./chart/cluster-issuer
+    namespace: cert-manager
+    createNamespace: false
+    needs:
+      - cert-manager/cert-manager
+    values:
+      - chart/cluster-issuer/values.yaml
+    secrets:
+      - chart/cluster-issuer/secrets.sops.yaml
+  - name: internal-registry
+    chart: ./chart/internal-registry
+    namespace: internal-registry
+    createNamespace: true
+    values:
+      - chart/internal-registry/values.yaml
   - name: android-tv
     chart: ./chart/android-tv
     namespace: android-tv
+    createNamespace: true
+    needs:
+      - internal-registry/internal-registry
     values:
       - chart/android-tv/values.yaml
+  - name: local-llm
+    chart: ./chart/local-llm
+    namespace: local-llm
+    createNamespace: true
+    values:
+      - chart/local-llm/values.yaml
+  - name: local-llm-ui
+    chart: ./chart/local-llm-ui
+    namespace: local-llm
+    createNamespace: true
+    needs:
+      - local-llm/local-llm
+    values:
+      - chart/local-llm-ui/values.yaml
+  - name: local-llm-proxy
+    chart: ./chart/local-llm-proxy
+    namespace: local-llm
+    createNamespace: true
+    needs:
+      - local-llm/local-llm
+    values:
+      - chart/local-llm-proxy/values.yaml
+  - name: vscode-server
+    chart: ./chart/vscode-server
+    namespace: vscode
+    createNamespace: true
+    needs:
+      - cert-manager/cert-manager
+      - cert-manager/cluster-issuer
+      - local-llm/local-llm-proxy
+    values:
+      - chart/vscode-server/values.yaml

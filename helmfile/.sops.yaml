@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: chart/cluster-issuer/secrets\.sops\.yaml$
+    age: REPLACE_WITH_YOUR_AGE_PUBLIC_KEY

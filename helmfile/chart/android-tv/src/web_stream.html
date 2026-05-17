@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__PAGE_TITLE__</title>
+<style>
+body { margin:0; background:#111; color:#ddd; font-family:monospace; }
+header { padding:12px; background:#1e1e1e; border-bottom:1px solid #333; }
+main { display:flex; justify-content:center; padding:10px; }
+img { width:min(96vw,1280px); height:auto; border:1px solid #333; background:#000; }
+.small { font-size:12px; opacity:.8; }
+</style>
+</head>
+<body>
+<header>
+  <div>__PAGE_TITLE__</div>
+  <div class="small">source: adb screenrecord | transport: RxPY pipeline | output: MJPEG</div>
+</header>
+<main>
+  <img id="stream" src="/stream.mjpg" alt="adb stream" />
+</main>
+<script>
+(function () {
+  const streamImg = document.getElementById("stream");
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+  function toHex(r, g, b) {
+    const v = (r << 16) | (g << 8) | b;
+    return "#" + v.toString(16).padStart(6, "0");
+  }
+
+  streamImg.addEventListener("click", function (event) {
+    if (!ctx || !streamImg.naturalWidth || !streamImg.naturalHeight) {
+      console.log("frame not ready");
+      return;
+    }
+
+    const rect = streamImg.getBoundingClientRect();
+    const scaleX = streamImg.naturalWidth / rect.width;
+    const scaleY = streamImg.naturalHeight / rect.height;
+
+    const x = Math.max(0, Math.min(streamImg.naturalWidth - 1, Math.floor((event.clientX - rect.left) * scaleX)));
+    const y = Math.max(0, Math.min(streamImg.naturalHeight - 1, Math.floor((event.clientY - rect.top) * scaleY)));
+
+    canvas.width = streamImg.naturalWidth;
+    canvas.height = streamImg.naturalHeight;
+    ctx.drawImage(streamImg, 0, 0);
+
+    const pixel = ctx.getImageData(x, y, 1, 1).data;
+    const hex = toHex(pixel[0], pixel[1], pixel[2]);
+    console.log({ x: x, y: y, hex: hex });
+  });
+})();
+</script>
+</body>
+</html>

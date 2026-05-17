@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-llm
+  template:
+    metadata:
+      labels:
+        app: local-llm
+    spec:
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []
+      containers:
+        - name: ollama
+          image: "ollama/ollama:latest"
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              export OLLAMA_HOST=0.0.0.0:11434
+              export OLLAMA_KEEP_ALIVE="10m"
+              ollama serve &
+              server_pid=$!
+              trap 'kill "$server_pid"; wait "$server_pid"' INT TERM
+              until ollama list >/dev/null 2>&1; do
+                sleep 2
+              done
+              if [ -n "${PRELOAD_MODELS}" ]; then
+                old_ifs=$IFS
+                IFS=','
+                for model in ${PRELOAD_MODELS}; do
+                  if [ -n "$model" ]; then
+                    ollama pull "$model"
+                  fi
+                done
+                IFS=$old_ifs
+              fi
+              wait "$server_pid"
+          env:
+            - name: PRELOAD_MODELS
+              value: "tinyllama"
+          ports:
+            - containerPort: 11434
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          startupProbe:
+            httpGet:
+              path: /api/tags
+              port: http
+            failureThreshold: 60
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 250m
+              memory: 1Gi
+            limits:
+              cpu: "3"
+              memory: 5Gi
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+      volumes:
+        - name: ollama-data
+          persistentVolumeClaim:
+            claimName: local-llm-models
+        - name: ollama-data
+          persistentVolumeClaim:
+            claimName: local-llm-models

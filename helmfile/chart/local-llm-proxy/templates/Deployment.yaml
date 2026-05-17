@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-llm-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-llm-proxy
+  template:
+    metadata:
+      labels:
+        app: local-llm-proxy
+    spec:
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []
+      containers:
+        - name: litellm
+          image: "ghcr.io/berriai/litellm:main-stable"
+          imagePullPolicy: IfNotPresent
+          command:
+            - litellm
+            - --config
+            - /app/config/config.yaml
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "4000"
+          env:
+            - name: LITELLM_MASTER_KEY
+              value: ""
+          ports:
+            - name: http
+              containerPort: 4000
+          readinessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/liveliness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: local-llm-proxy-config

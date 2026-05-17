@@ -11,9 +11,15 @@ kind: ConfigMap
 metadata:
   name: src
 data:
-{{- range $path, $_ := .Files.Glob "src/**" }}
-{{- if and (not (hasSuffix "/" $path)) (regexMatch "\\.(py|sh|html)$" $path) }}
+{{- range $path, $_ := .Files.Glob "src/*.py" }}
   {{ $path | trimPrefix "src/" | replace "/" "_" }}: |
 {{ $.Files.Get $path | indent 4 }}
 {{- end }}
+{{- range $path, $_ := .Files.Glob "src/*.sh" }}
+  {{ $path | trimPrefix "src/" | replace "/" "_" }}: |
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- range $path, $_ := .Files.Glob "src/*.html" }}
+  {{ $path | trimPrefix "src/" | replace "/" "_" }}: |
+{{ $.Files.Get $path | indent 4 }}
 {{- end }}

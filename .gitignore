@@ -1,1 +1,3 @@
 __pycache__
+helmfile/.sops-local/
+helmfile/.sops.local.yaml

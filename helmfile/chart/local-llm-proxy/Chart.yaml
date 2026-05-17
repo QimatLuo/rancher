@@ -1,0 +1,6 @@
+apiVersion: v2
+name: local-llm-proxy
+description: OpenAI-compatible LiteLLM proxy backed by local Ollama
+type: application
+version: 0.1.0
+appVersion: "main-stable"

@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: android-rpi
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: android-rpi
@@ -12,17 +13,50 @@ spec:
         app: android-rpi
     spec:
       hostNetwork: false
-      containers:
-        - name: adb
-          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+      imagePullSecrets:
+        - name: regcred
+      initContainers:
+        - name: wait-for-image
+          image: curlimages/curl:8.8.0
+          imagePullPolicy: IfNotPresent
           command:
             - sh
             - -c
-            - bash connect.sh && exec python3 -u feature_axe.py
+            - |
+              set -eu
+              start=$(date +%s)
+              while true; do
+                tags=$(curl -fsS "http://internal-registry.internal-registry.svc.cluster.local:5000/v2/android-tv/tags/list" || true)
+                if echo "$tags" | grep -q '"rxpy-adb-ffmpeg-v1"'; then
+                  echo "Image manifest is available"
+                  exit 0
+                fi
+                now=$(date +%s)
+                if [ $((now - start)) -ge 300 ]; then
+                  echo "Timed out waiting for image android-tv:rxpy-adb-ffmpeg-v1"
+                  exit 1
+                fi
+                sleep 5
+              done
+      containers:
+        - name: adb
+          image: "registry.lan:30500/android-tv:rxpy-adb-ffmpeg-v1"
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              COMPLETION_LINE='[ -f /src/bash_completion_paint.sh ] && source /src/bash_completion_paint.sh'
+              if ! grep -Fqx "$COMPLETION_LINE" /root/.bashrc 2>/dev/null; then
+                printf '\n%s\n' "$COMPLETION_LINE" >> /root/.bashrc
+              fi
+              if [ -f /etc/bash.bashrc ] && ! grep -Fqx "$COMPLETION_LINE" /etc/bash.bashrc 2>/dev/null; then
+                printf '\n%s\n' "$COMPLETION_LINE" >> /etc/bash.bashrc
+              fi
+              bash connect.sh && exec python3 -u rxpy_adb_stream.py
           env:
             - name: ADB_SERVER_IP
-              value: "192.168.1.198"
+              value: "192.168.1.163"
             - name: ADB_SERVER_PORT
               value: "5555"
             - name: POD_NAME
@@ -37,7 +71,7 @@ spec:
             - name: src
               mountPath: /src
             - name: sample-click
-              mountPath: {{ .Values.persistence.mountPath }}
+              mountPath: /sample_click
             - name: usb
               mountPath: /dev/bus/usb
           workingDir: /src
@@ -50,7 +84,7 @@ spec:
             name: src
         - name: sample-click
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.claimName }}
+            claimName: android-tv-sample-click
         - name: usb
           hostPath:
             path: /dev/bus/usb

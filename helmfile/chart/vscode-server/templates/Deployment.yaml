@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vscode-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscode-server
+  template:
+    metadata:
+      labels:
+        app: vscode-server
+    spec:
+      nodeSelector:
+        {}
+      affinity:
+        {}
+      tolerations:
+        []
+      initContainers:
+        - name: init-home-permissions
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /home/coder/workspace
+              mkdir -p /home/coder/.local/share/code-server/User
+              mkdir -p /home/coder/.continue
+              chown -R 1000:1000 /home/coder
+          volumeMounts:
+            - name: home
+              mountPath: /home/coder
+      containers:
+        - name: code-server
+          image: "codercom/code-server:4.95.3"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PASSWORD
+              value: "change-this-password"
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /home/coder/.local/share/code-server/User
+              mkdir -p /home/coder/.continue
+              cp /tmp/config/settings.json /home/coder/.local/share/code-server/User/settings.json
+              cp /tmp/config/continue-config.yaml /home/coder/.continue/config.yaml
+              cp /tmp/config/continue-config.ts /home/coder/.continue/config.ts
+              cp /tmp/config/continue-rc.json /home/coder/.continue/.continuerc.json
+              code-server --install-extension "Continue.continue@1.0.13" || true
+              code-server --install-extension "redhat.vscode-yaml" || true
+              exec code-server \
+                --bind-addr 0.0.0.0:13337 \
+                --auth password \
+                /home/coder/workspace
+          ports:
+            - name: http
+              containerPort: 13337
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 2
+              memory: 2Gi
+          volumeMounts:
+            - name: home
+              mountPath: /home/coder
+            - name: user-config
+              mountPath: /tmp/config
+              readOnly: true
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: vscode-server-home
+        - name: user-config
+          configMap:
+            name: vscode-server-user-config

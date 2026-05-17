@@ -1,0 +1,6 @@
+apiVersion: v2
+name: vscode-server
+description: Browser-based VS Code Server with local LLM integration
+type: application
+version: 0.1.0
+appVersion: "4.95.3"

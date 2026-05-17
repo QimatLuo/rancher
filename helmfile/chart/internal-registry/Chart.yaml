@@ -1,0 +1,6 @@
+apiVersion: v2
+name: internal-registry
+description: Shared internal Docker registry for cross-namespace image build/pull
+type: application
+version: 0.1.0
+appVersion: "2"

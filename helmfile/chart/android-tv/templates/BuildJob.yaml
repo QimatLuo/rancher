@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: android-tv-build-publish
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 600
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app: android-tv-build-publish
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:v1.23.2-debug
+          imagePullPolicy: IfNotPresent
+          command:
+            - /busybox/sh
+            - -c
+            - |
+              set -eu
+
+              cat > /workspace/Dockerfile <<'EOF'
+{{ .Files.Get "src/Dockerfile" | indent 14 }}
+              EOF
+
+              /kaniko/executor \
+                --dockerfile=/workspace/Dockerfile \
+                --context=dir:///workspace \
+                --destination=internal-registry.internal-registry.svc.cluster.local:5000/android-tv:rxpy-adb-ffmpeg-v1 \
+                --insecure \
+                --skip-tls-verify \
+                --insecure-pull \
+                --cache=false \
+                --cache-repo=

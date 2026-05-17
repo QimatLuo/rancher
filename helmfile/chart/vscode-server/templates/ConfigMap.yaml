@@ -1,0 +1,145 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vscode-server-user-config
+data:
+  settings.json: |
+    {
+      "workbench.startupEditor": "none",
+      "telemetry.telemetryLevel": "off",
+      "continue.telemetryEnabled": false,
+      "continue.enableQuickActions": false,
+      "continue.enableTabAutocomplete": false,
+      "continue.pauseCodebaseIndexOnStart": true,
+      "security.workspace.trust.enabled": false
+    }
+  continue-config.yaml: |
+    name: Local LLM Assistant
+    version: 1.0.0
+    schema: v1
+    models:
+      - name: "tinyllama-chat"
+        provider: "openai"
+        model: "tinyllama"
+        apiBase: "http://local-llm-proxy.local-llm.svc.cluster.local:4000/v1"
+        apiKey: "local"
+        systemMessage: "Always reply in Traditional Chinese (Taiwan). If the user explicitly requests another language, follow that request."
+        roles:
+          - chat
+        defaultCompletionOptions:
+          temperature: 0.2
+          maxTokens: 8192
+      - name: "tinyllama"
+        provider: "openai"
+        model: "tinyllama"
+        apiBase: "http://local-llm-proxy.local-llm.svc.cluster.local:4000/v1"
+        apiKey: "local"
+        systemMessage: "Always reply in Traditional Chinese (Taiwan). If the user explicitly requests another language, follow that request."
+        roles:
+          - edit
+          - apply
+          - summarize
+        defaultCompletionOptions:
+          temperature: 0.2
+          maxTokens: 4096
+    context:
+      - provider: file
+      - provider: code
+      - provider: diff
+      - provider: docs
+      - provider: web
+    completionOptions:
+      temperature: 0.2
+      maxTokens: 8192
+  continue-config.ts: |
+    export function modifyConfig(config: Config): Config {
+      const configuredModels = [
+        {
+          name: "tinyllama-chat",
+          provider: "openai",
+          model: "tinyllama",
+          apiBase: "http://local-llm-proxy.local-llm.svc.cluster.local:4000/v1",
+          apiKey: "local",
+          systemMessage:
+            "Always reply in Traditional Chinese (Taiwan). If the user explicitly requests another language, follow that request.",
+          roles: ["chat"]
+        },
+        {
+          name: "tinyllama",
+          provider: "openai",
+          model: "tinyllama",
+          apiBase: "http://local-llm-proxy.local-llm.svc.cluster.local:4000/v1",
+          apiKey: "local",
+          systemMessage:
+            "Always reply in Traditional Chinese (Taiwan). If the user explicitly requests another language, follow that request.",
+          roles: ["edit", "apply", "summarize"]
+        }
+      ];
+
+      const models = Array.isArray(config.models) ? config.models : [];
+      const nonOllamaModels = models.filter((model) => model.provider !== "ollama");
+
+      const hasAnyConfiguredModel = configuredModels.some((configuredModel) =>
+        nonOllamaModels.some(
+          (model) =>
+            model.provider === configuredModel.provider &&
+            model.model === configuredModel.model &&
+            model.apiBase === configuredModel.apiBase &&
+            model.name === configuredModel.name
+        )
+      );
+
+      const modelsWithoutConfigured = nonOllamaModels.filter(
+        (model) =>
+          !configuredModels.some(
+            (configuredModel) =>
+              model.provider === configuredModel.provider &&
+              model.model === configuredModel.model &&
+              model.apiBase === configuredModel.apiBase &&
+              model.name === configuredModel.name
+          )
+      );
+
+      return {
+        ...config,
+        models: hasAnyConfiguredModel
+          ? [...configuredModels, ...modelsWithoutConfigured]
+          : [...configuredModels, ...nonOllamaModels]
+      };
+    }
+  continue-rc.json: |
+    {
+      "disableIndexing": true,
+      "models": [
+          {
+            "name": "tinyllama-chat",
+            "provider": "openai",
+            "model": "tinyllama",
+            "apiBase": "http://local-llm-proxy.local-llm.svc.cluster.local:4000/v1",
+            "apiKey": "local",
+            "systemMessage": "Always reply in Traditional Chinese (Taiwan). If the user explicitly requests another language, follow that request.",
+            "roles": ["chat"]
+          },
+        {
+          "name": "tinyllama",
+          "provider": "openai",
+          "model": "tinyllama",
+          "apiBase": "http://local-llm-proxy.local-llm.svc.cluster.local:4000/v1",
+          "apiKey": "local",
+            "systemMessage": "Always reply in Traditional Chinese (Taiwan). If the user explicitly requests another language, follow that request.",
+            "roles": ["edit", "apply", "summarize"]
+        },
+        {
+          "name": "_end",
+          "provider": "openai",
+          "model": "_end",
+          "apiBase": "http://127.0.0.1",
+          "apiKey": "_end",
+          "roles": ["chat"]
+        }
+      ],
+      "completionOptions": {
+        "temperature": 0.2,
+        "maxTokens": 8192
+      }
+    }
