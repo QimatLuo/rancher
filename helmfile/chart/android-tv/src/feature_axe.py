@@ -48,7 +48,8 @@ TOOL_STATE_SAMPLE_B_REF_X = 377
 TOOL_STATE_SAMPLE_B_REF_Y = 243
 DEFAULT_AUTOMATION_ENABLED = True
 DEFAULT_AUTOMATION_LOOP_INTERVAL_SEC = 1.0
-DEFAULT_TOOL_STATE_COLOR_TOLERANCE = 18
+DEFAULT_TOOL_STATE_COLOR_TOLERANCE_A = 60
+DEFAULT_TOOL_STATE_COLOR_TOLERANCE_B = 18
 DEFAULT_TAP_TARGET_WIDTH = 0
 DEFAULT_TAP_TARGET_HEIGHT = 0
 DEFAULT_STAMINA_LINE_MIN_RATIO = 0.65
@@ -60,13 +61,18 @@ DEFAULT_STAMINA_LINE_MIN_S = 120
 DEFAULT_STAMINA_LINE_MIN_V = 120
 DEFAULT_BURST_TAP_COUNT = 10
 DEFAULT_BURST_TAP_INTERVAL_SEC = 0.5
+TOOL_STATE_STABLE_FRAME_COUNT =20
+TOOL_STATE_STABLE_COLOR_TOLERANCE = 6
+TOOL_STATE_STABLE_TIMEOUT_SEC = 10.0
+TOOL_STATE_STABLE_POLL_INTERVAL_SEC = 0.1
 
 
 @dataclass
 class RuntimeConfig:
     automation_enabled: bool
     automation_loop_interval_sec: float
-    tool_state_color_tolerance: int
+    tool_state_color_tolerance_a: int
+    tool_state_color_tolerance_b: int
     tap_target_width: int
     tap_target_height: int
     stamina_line_min_ratio: float
@@ -133,7 +139,8 @@ def install_signal_handlers() -> None:
 def load_config() -> RuntimeConfig:
     automation_enabled = DEFAULT_AUTOMATION_ENABLED
     automation_loop_interval_sec = DEFAULT_AUTOMATION_LOOP_INTERVAL_SEC
-    tool_state_color_tolerance = DEFAULT_TOOL_STATE_COLOR_TOLERANCE
+    tool_state_color_tolerance_a = DEFAULT_TOOL_STATE_COLOR_TOLERANCE_A
+    tool_state_color_tolerance_b = DEFAULT_TOOL_STATE_COLOR_TOLERANCE_B
     tap_target_width = DEFAULT_TAP_TARGET_WIDTH
     tap_target_height = DEFAULT_TAP_TARGET_HEIGHT
     stamina_line_min_ratio = DEFAULT_STAMINA_LINE_MIN_RATIO
@@ -148,8 +155,10 @@ def load_config() -> RuntimeConfig:
 
     if automation_loop_interval_sec < 0:
         raise ValueError("AXE_AUTOMATION_LOOP_INTERVAL_SEC must be >= 0")
-    if tool_state_color_tolerance < 0:
-        raise ValueError("AXE_COLOR_TOLERANCE must be >= 0")
+    if tool_state_color_tolerance_a < 0:
+        raise ValueError("AXE_COLOR_TOLERANCE_A must be >= 0")
+    if tool_state_color_tolerance_b < 0:
+        raise ValueError("AXE_COLOR_TOLERANCE_B must be >= 0")
     if tap_target_width < 0 or tap_target_height < 0:
         raise ValueError("AXE_TAP_TARGET_WIDTH/HEIGHT must be >= 0")
     if (tap_target_width == 0) != (tap_target_height == 0):
@@ -180,7 +189,8 @@ def load_config() -> RuntimeConfig:
     return RuntimeConfig(
         automation_enabled=automation_enabled,
         automation_loop_interval_sec=automation_loop_interval_sec,
-        tool_state_color_tolerance=tool_state_color_tolerance,
+        tool_state_color_tolerance_a=tool_state_color_tolerance_a,
+        tool_state_color_tolerance_b=tool_state_color_tolerance_b,
         tap_target_width=tap_target_width,
         tap_target_height=tap_target_height,
         stamina_line_min_ratio=stamina_line_min_ratio,
@@ -282,7 +292,8 @@ class AxeAutomationRunner:
             )
         print(
             "axe_automation status=enabled "
-            f"interval={self._config.automation_loop_interval_sec}s tol={self._config.tool_state_color_tolerance}"
+            f"interval={self._config.automation_loop_interval_sec}s "
+            f"tol_a={self._config.tool_state_color_tolerance_a} tol_b={self._config.tool_state_color_tolerance_b}"
         )
 
     def join(self, timeout: float | None = None) -> None:
@@ -485,15 +496,33 @@ class AxeAutomationRunner:
         return stamina_warning_hits > 0
 
     def _evaluate_tool_state_from_latest_frame(self) -> tuple[bool, bool] | None:
-        snapshot = self._manager.snapshot()
-        if snapshot is None:
+        stable = self._wait_for_stable_tool_state_frame(
+            stable_count=TOOL_STATE_STABLE_FRAME_COUNT,
+            color_tolerance=TOOL_STATE_STABLE_COLOR_TOLERANCE,
+            timeout_sec=TOOL_STATE_STABLE_TIMEOUT_SEC,
+            poll_interval_sec=TOOL_STATE_STABLE_POLL_INTERVAL_SEC,
+        )
+        if stable is None:
             return None
 
-        _captured_at, frame = snapshot
+        frame, ax, ay, bx, by, color_a, color_b, stable_hits = stable
+
+        target_a = hex_to_rgb("FFFDFF")
+        target_b = hex_to_rgb("C7B8B1")
+        has_equipped_tool_signal = is_color_close(color_a, target_a, self._config.tool_state_color_tolerance_a)
+        has_tool_worn_signal = is_color_close(color_b, target_b, self._config.tool_state_color_tolerance_b)
+        print(
+            "axe_automation tool_state "
+            f"A@({ax},{ay})={color_a} equipped_signal={int(has_equipped_tool_signal)} "
+            f"B@({bx},{by})={color_b} worn_signal={int(has_tool_worn_signal)} "
+            f"stable_frames={stable_hits}"
+        )
+        return has_equipped_tool_signal, has_tool_worn_signal
+
+    def _resolve_tool_state_sample_points(self, frame: np.ndarray) -> tuple[int, int, int, int] | None:
         h, w = frame.shape[:2]
         if h <= 0 or w <= 0:
             return None
-
         ax, ay = scale_point_from_reference(
             w,
             h,
@@ -510,22 +539,75 @@ class AxeAutomationRunner:
             ref_w=STAMINA_LINE_REF_WIDTH,
             ref_h=STAMINA_LINE_REF_HEIGHT,
         )
+        return ax, ay, bx, by
 
-        color_a = sample_rgb_from_frame(frame, ax, ay)
-        color_b = sample_rgb_from_frame(frame, bx, by)
-        if color_a is None or color_b is None:
+    def _wait_for_stable_tool_state_frame(
+        self,
+        *,
+        stable_count: int,
+        color_tolerance: int,
+        timeout_sec: float,
+        poll_interval_sec: float,
+    ) -> tuple[
+        np.ndarray,
+        int,
+        int,
+        int,
+        int,
+        tuple[int, int, int],
+        tuple[int, int, int],
+        int,
+    ] | None:
+        required = max(1, int(stable_count))
+        deadline = time.monotonic() + max(0.0, timeout_sec)
+
+        last_ts = -1.0
+        last_color_a: tuple[int, int, int] | None = None
+        last_color_b: tuple[int, int, int] | None = None
+        hits = 0
+        latest_payload: tuple[
+            np.ndarray, int, int, int, int, tuple[int, int, int], tuple[int, int, int]
+        ] | None = None
+
+        while not self._shutdown_event.is_set():
+            snapshot = self._manager.snapshot()
+            if snapshot is not None:
+                captured_at, frame = snapshot
+                if captured_at != last_ts:
+                    last_ts = captured_at
+                    points = self._resolve_tool_state_sample_points(frame)
+                    if points is not None:
+                        ax, ay, bx, by = points
+                        color_a = sample_rgb_from_frame(frame, ax, ay)
+                        color_b = sample_rgb_from_frame(frame, bx, by)
+                        if color_a is not None and color_b is not None:
+                            if (
+                                last_color_a is not None
+                                and last_color_b is not None
+                                and is_color_close(color_a, last_color_a, color_tolerance)
+                                and is_color_close(color_b, last_color_b, color_tolerance)
+                            ):
+                                hits += 1
+                            else:
+                                hits = 1
+                            last_color_a = color_a
+                            last_color_b = color_b
+                            latest_payload = (frame, ax, ay, bx, by, color_a, color_b)
+                            if hits >= required:
+                                return (*latest_payload, hits)
+
+            if time.monotonic() >= deadline:
+                break
+            if self._shutdown_event.wait(timeout=max(0.0, poll_interval_sec)):
+                return None
+
+        if latest_payload is None:
             return None
-
-        target_a = hex_to_rgb("FFFDFF")
-        target_b = hex_to_rgb("C7B8B1")
-        has_equipped_tool_signal = is_color_close(color_a, target_a, self._config.tool_state_color_tolerance)
-        has_tool_worn_signal = is_color_close(color_b, target_b, self._config.tool_state_color_tolerance)
         print(
-            "axe_automation tool_state "
-            f"A@({ax},{ay})={color_a} equipped_signal={int(has_equipped_tool_signal)} "
-            f"B@({bx},{by})={color_b} worn_signal={int(has_tool_worn_signal)}"
+            "axe_automation tool_state_unstable "
+            f"stable_hits={hits} required={required} timeout={timeout_sec:.2f}s"
         )
-        return has_equipped_tool_signal, has_tool_worn_signal
+        return (*latest_payload, hits)
 
     def _run_cv_detection(self, captured_at: float, frame: np.ndarray) -> None:
         started = time.monotonic()
