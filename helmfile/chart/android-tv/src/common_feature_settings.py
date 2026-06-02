@@ -39,6 +39,16 @@ class CommonRuntimeSettings:
     first_frame_timeout_sec: float
 
 
+@dataclass(frozen=True)
+class CommonToolStateSettings:
+    color_tolerance_a: int
+    color_tolerance_b: int
+    stable_frame_count: int
+    stable_color_tolerance: int
+    stable_timeout_sec: float
+    stable_poll_interval_sec: float
+
+
 def parse_capture_size(size_text: str) -> tuple[int, int]:
     match = re.fullmatch(r"\s*(\d+)x(\d+)\s*", size_text)
     if not match:
@@ -93,8 +103,22 @@ def load_common_runtime_settings() -> CommonRuntimeSettings:
 _COMMON_RUNTIME_SETTINGS = load_common_runtime_settings()
 
 
+_COMMON_TOOL_STATE_SETTINGS = CommonToolStateSettings(
+    color_tolerance_a=60,
+    color_tolerance_b=18,
+    stable_frame_count=20,
+    stable_color_tolerance=6,
+    stable_timeout_sec=10.0,
+    stable_poll_interval_sec=0.1,
+)
+
+
 def get_common_runtime_settings() -> CommonRuntimeSettings:
     return _COMMON_RUNTIME_SETTINGS
+
+
+def get_common_tool_state_settings() -> CommonToolStateSettings:
+    return _COMMON_TOOL_STATE_SETTINGS
 
 
 def make_common_stream_config() -> StreamConfig:

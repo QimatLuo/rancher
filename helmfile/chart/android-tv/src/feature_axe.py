@@ -24,6 +24,7 @@ from common_adb import (
 )
 from common_feature_runtime import AsyncBusyWorker, AsyncSequencedWorker
 from common_feature_settings import (
+    get_common_tool_state_settings,
     get_common_runtime_settings,
     make_common_startup_log,
     make_common_stream_manager,
@@ -36,6 +37,7 @@ from common_cv import hex_to_rgb, is_color_close, sample_rgb_from_frame, scale_p
 
 shutdown_event = threading.Event()
 COMMON_SETTINGS = get_common_runtime_settings()
+COMMON_TOOL_STATE_SETTINGS = get_common_tool_state_settings()
 
 STAMINA_LINE_REF_WIDTH = 640
 STAMINA_LINE_REF_HEIGHT = 360
@@ -48,8 +50,6 @@ TOOL_STATE_SAMPLE_B_REF_X = 377
 TOOL_STATE_SAMPLE_B_REF_Y = 243
 DEFAULT_AUTOMATION_ENABLED = True
 DEFAULT_AUTOMATION_LOOP_INTERVAL_SEC = 1.0
-DEFAULT_TOOL_STATE_COLOR_TOLERANCE_A = 60
-DEFAULT_TOOL_STATE_COLOR_TOLERANCE_B = 18
 DEFAULT_TAP_TARGET_WIDTH = 0
 DEFAULT_TAP_TARGET_HEIGHT = 0
 DEFAULT_STAMINA_LINE_MIN_RATIO = 0.65
@@ -61,10 +61,6 @@ DEFAULT_STAMINA_LINE_MIN_S = 120
 DEFAULT_STAMINA_LINE_MIN_V = 120
 DEFAULT_BURST_TAP_COUNT = 10
 DEFAULT_BURST_TAP_INTERVAL_SEC = 0.5
-TOOL_STATE_STABLE_FRAME_COUNT =20
-TOOL_STATE_STABLE_COLOR_TOLERANCE = 6
-TOOL_STATE_STABLE_TIMEOUT_SEC = 10.0
-TOOL_STATE_STABLE_POLL_INTERVAL_SEC = 0.1
 
 
 @dataclass
@@ -139,8 +135,8 @@ def install_signal_handlers() -> None:
 def load_config() -> RuntimeConfig:
     automation_enabled = DEFAULT_AUTOMATION_ENABLED
     automation_loop_interval_sec = DEFAULT_AUTOMATION_LOOP_INTERVAL_SEC
-    tool_state_color_tolerance_a = DEFAULT_TOOL_STATE_COLOR_TOLERANCE_A
-    tool_state_color_tolerance_b = DEFAULT_TOOL_STATE_COLOR_TOLERANCE_B
+    tool_state_color_tolerance_a = COMMON_TOOL_STATE_SETTINGS.color_tolerance_a
+    tool_state_color_tolerance_b = COMMON_TOOL_STATE_SETTINGS.color_tolerance_b
     tap_target_width = DEFAULT_TAP_TARGET_WIDTH
     tap_target_height = DEFAULT_TAP_TARGET_HEIGHT
     stamina_line_min_ratio = DEFAULT_STAMINA_LINE_MIN_RATIO
@@ -497,10 +493,10 @@ class AxeAutomationRunner:
 
     def _evaluate_tool_state_from_latest_frame(self) -> tuple[bool, bool] | None:
         stable = self._wait_for_stable_tool_state_frame(
-            stable_count=TOOL_STATE_STABLE_FRAME_COUNT,
-            color_tolerance=TOOL_STATE_STABLE_COLOR_TOLERANCE,
-            timeout_sec=TOOL_STATE_STABLE_TIMEOUT_SEC,
-            poll_interval_sec=TOOL_STATE_STABLE_POLL_INTERVAL_SEC,
+            stable_count=COMMON_TOOL_STATE_SETTINGS.stable_frame_count,
+            color_tolerance=COMMON_TOOL_STATE_SETTINGS.stable_color_tolerance,
+            timeout_sec=COMMON_TOOL_STATE_SETTINGS.stable_timeout_sec,
+            poll_interval_sec=COMMON_TOOL_STATE_SETTINGS.stable_poll_interval_sec,
         )
         if stable is None:
             return None
