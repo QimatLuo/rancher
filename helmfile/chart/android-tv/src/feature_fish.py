@@ -44,8 +44,8 @@ DEFAULT_AUTOMATION_ENABLED = True
 DEFAULT_AUTOMATION_LOOP_INTERVAL_SEC = 0.25
 DEFAULT_TAP_TARGET_WIDTH = 0
 DEFAULT_TAP_TARGET_HEIGHT = 0
-DEFAULT_HOLD_SEC = 5.0
-DEFAULT_COLOR_TOLERANCE = 22
+DEFAULT_HOLD_SEC = 7.0
+DEFAULT_COLOR_TOLERANCE = 25
 DEFAULT_BAIT_REARM_COOLDOWN_SEC = 12.0
 DEFAULT_BAIT_HIT_CONFIRM_SEC = 3.0
 DEFAULT_CV_MIN_INTERVAL_SEC = 0.12
@@ -82,7 +82,7 @@ HOLD_FRAME_X = 550
 HOLD_FRAME_Y = 273
 BAIT_SAMPLE_X = 51
 BAIT_SAMPLE_Y = 336
-BAIT_TARGET_HEX = "C6C8D4"
+BAIT_TARGET_HEX = "B1B3BB"
 FALLBACK_LABEL_X = BAIT_SAMPLE_X
 FALLBACK_LABEL_Y = BAIT_SAMPLE_Y - 28
 
@@ -381,8 +381,9 @@ def detect_white_slash_candidates(
         hsv_samples = cv2.cvtColor(samples.astype(np.uint8).reshape(1, -1, 3), cv2.COLOR_BGR2HSV).reshape(-1, 3)
         sat = hsv_samples[:, 1].astype(np.float32)
         val = hsv_samples[:, 2].astype(np.float32)
-        white_ratio = float(np.mean((sat <= 85) & (val >= 150)))
-        bright_ratio = float(np.mean(val >= 180))
+        # Relax slash color gates so slightly dim/less-neutral white strokes can pass.
+        white_ratio = float(np.mean((sat <= 110) & (val >= 135)))
+        bright_ratio = float(np.mean(val >= 165))
         sat_mean = float(np.mean(sat))
         val_mean = float(np.mean(val))
 
@@ -415,9 +416,9 @@ def detect_white_slash_candidates(
     filtered = [
         c
         for c in candidates
-        if c[8] >= 0.24
-        and c[9] >= 0.28
-        and c[11] >= 150.0
+        if c[8] >= 0.18
+        and c[9] >= 0.20
+        and c[11] >= 135.0
         and c[5] <= 35.0
         and ((c[1] + c[3]) * 0.5) >= 40.0
     ]
