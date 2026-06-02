@@ -38,6 +38,8 @@ spec:
               mountPath: /src
             - name: sample-click
               mountPath: {{ .Values.persistence.mountPath }}
+            - name: usb
+              mountPath: /dev/bus/usb
           workingDir: /src
       volumes:
         - name: android
@@ -49,3 +51,7 @@ spec:
         - name: sample-click
           persistentVolumeClaim:
             claimName: {{ .Values.persistence.claimName }}
+        - name: usb
+          hostPath:
+            path: /dev/bus/usb
+            type: Directory

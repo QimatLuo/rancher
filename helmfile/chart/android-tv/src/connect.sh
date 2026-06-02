@@ -7,6 +7,21 @@ if ! command -v adb >/dev/null 2>&1; then
   exit 1
 fi
 
+adb start-server >/dev/null 2>&1 || true
+
+check_existing_device() {
+  if adb devices | awk 'NR>1 && $2=="device" {found=1} END{exit !found}'; then
+    echo "[connect.sh] connected: existing adb device available"
+    adb devices
+    return 0
+  fi
+  return 1
+}
+
+if check_existing_device; then
+  exit 0
+fi
+
 PORT="${ADB_SERVER_PORT:-}"
 
 if [[ -z "$PORT" ]]; then
@@ -32,6 +47,10 @@ for host in $(seq 100 200); do
 done
 
 for target in "${targets[@]}"; do
+  if check_existing_device; then
+    exit 0
+  fi
+
   echo "[connect.sh] trying: $target"
   output="$(timeout 1s adb connect "$target" 2>&1)"
   status=$?

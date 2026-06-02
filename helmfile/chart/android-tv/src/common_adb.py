@@ -105,7 +105,9 @@ def probe_device_tap_size() -> tuple[int, int] | None:
         return None
 
     output = (result.stdout or "") + "\n" + (result.stderr or "")
-    match = re.search(r"(?:Physical size|Override size):\s*(\d+)x(\d+)", output)
+    match = re.search(r"Override size:\s*(\d+)x(\d+)", output)
+    if not match:
+        match = re.search(r"Physical size:\s*(\d+)x(\d+)", output)
     if not match:
         return None
 
@@ -113,6 +115,8 @@ def probe_device_tap_size() -> tuple[int, int] | None:
     height = int(match.group(2))
     if width <= 0 or height <= 0:
         return None
+    if height > width:
+        width, height = height, width
     return width, height
 
 
