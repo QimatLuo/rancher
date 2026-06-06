@@ -59,8 +59,8 @@ DEFAULT_STAMINA_LINE_H2_MIN = 170
 DEFAULT_STAMINA_LINE_H2_MAX = 179
 DEFAULT_STAMINA_LINE_MIN_S = 120
 DEFAULT_STAMINA_LINE_MIN_V = 120
-DEFAULT_BURST_TAP_COUNT = 10
-DEFAULT_BURST_TAP_INTERVAL_SEC = 0.5
+DEFAULT_BURST_TAP_COUNT = 20
+DEFAULT_BURST_TAP_INTERVAL_SEC = 0.25
 
 
 @dataclass
@@ -504,7 +504,7 @@ class AxeAutomationRunner:
         frame, ax, ay, bx, by, color_a, color_b, stable_hits = stable
 
         target_a = hex_to_rgb("FFFDFF")
-        target_b = hex_to_rgb("C7B8B1")
+        target_b = hex_to_rgb("A19997")
         has_equipped_tool_signal = is_color_close(color_a, target_a, self._config.tool_state_color_tolerance_a)
         has_tool_worn_signal = is_color_close(color_b, target_b, self._config.tool_state_color_tolerance_b)
         print(
